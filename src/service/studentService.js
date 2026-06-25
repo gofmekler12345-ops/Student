@@ -1,51 +1,37 @@
 import * as repo from '../repository/studentRepository.js'
+import {findStudentById} from "../repository/studentRepository.js";
 
-export const addStudent = async (student) => repo.createStudent(student)
-
-
-export const findStudent = async (id) => {
-    let student = await repo.findStudentById(id)
-    if (student) {
-        student = {...student};
-        student.password = undefined;
+export const addStudent = async ({id, name, password}) => {
+    if (await findStudentById(id)) {
+        return false;
     }
-    return student;
+    await repo.createStudent({_id: id, name, password: password})
+    return true;
 }
 
-export const deleteStudent = async (id) => {
-    let student = await repo.deleteStudentById(+id)
-    if (student)
-        student.password = undefined;
-    return student;
-}
 
-export const updateStudent = async (id, data) => {
-    let student = await repo.findStudentById(+id)
-    if (student) {
-        student = {...student, ...data};
-        student.scores = undefined;
-    }
-    return student;
-}
+export const findStudent = async (id) => renameId(await repo.findStudentById(+id))
 
-export const addScore = async (id, exam, score) => {
-    const student = await repo.findStudentById(+id)
-    if (student) {
-        student.scores[exam] = score;
-        await repo.updateStudent(student)
-    }
-    return student;
-}
+export const deleteStudent = async (id) => renameId(await repo.deleteStudentById(+id))
 
-export const findStudentsByName = async (name) => {
-    return await repo.findStudentsByName(name).map(student => ({...student, password: undefined}));
-}
+export const updateStudent = async (id, data) => renameId(await repo.findStudentById(+id))
+
+export const addScore = async (id, exam, score) => repo.updateStudent(+id, {[`scores.${exam}`]: score});
+
+export const findStudentsByName = async (name) => (await repo.findStudentsByName(name)).map(renameId);
 
 export const countStudentsByNames = async (names) => {
-    names= Array.isArray(names) ? names : [names]
+    names = Array.isArray(names) ? names : [names]
     return await repo.countStudentsByNames(names);
 }
 
-export const findStudentsByMinScore = async (exam, minScore) => {
-    return await repo.findStudentsByMinScore(exam, minScore).map(student => ({...student, password: undefined}));
+export const findStudentsByMinScore = async (exam, minScore) => (await repo.findStudentsByMinScore(exam, +minScore)).map(renameId);
+
+function renameId(student) {
+    if (student) {
+        student.id = student._id
+        delete student._id
+        delete student.__v;
+    }
+    return student;
 }
