@@ -31,7 +31,7 @@ function renameId(student) {
     if (student) {
         student.id = student._id
         delete student._id
-        delete student.__v;
+        // delete student.__v;
     }
     return student;
 }
