@@ -1,6 +1,12 @@
 import * as service from '../service/studentService.js';
+import {addScoreSchema, addStudentSchema, updateStudentSchema} from "../validator/studentValidator.js";
 
 export const addStudent = async (req, res) => {
+    const {error} = addStudentSchema.validate(req.body);
+    if (error) {
+        return res.status(400).send(error.details[0].message);
+    }
+
     const success = await service.addStudent(req.body);
     if (success) {
         return res.status(204).send();
@@ -11,7 +17,7 @@ export const addStudent = async (req, res) => {
 
 export const findStudent = async (req, res) => {
     const student = await service.findStudent(req.params.id);
-    if(student) {
+    if (student) {
         return res.json(student);
     } else {
         return res.status(404).send({
@@ -40,6 +46,10 @@ export const deleteStudent = async (req, res) => {
 }
 
 export const updateStudent = async (req, res) => {
+    const {error} = updateStudentSchema.validate(req.body);
+    if (error) {
+        return res.status(400).send(error.details[0].message);
+    }
     const student = await service.updateStudent(req.params.id, req.body);
     if (student) {
         return res.json(student);
@@ -55,6 +65,10 @@ export const updateStudent = async (req, res) => {
 }
 
 export const addScore = async (req, res) => {
+    const {error}= addScoreSchema.validate(req.body);
+    if(error) {
+        return res.status(400).send(error.details[0].message);
+    }
     const success = await service.addScore(req.params.id, req.body.examName, req.body.score);
     if (success) {
         return res.status(204).send();
